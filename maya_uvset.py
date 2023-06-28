@@ -26,9 +26,31 @@ def copy_uv_set(source_field, target_field,  *args):
         # 将源 UV 集复制到目标 UV 集
         cmds.polyCopyUV(obj, uvSetNameInput=source_uv_set, uvSetName=target_uv_set, ch=1)
 
+        # 创建一个序列，选择模型的第一个uv集
+        firstUvSet = cmds.getAttr(obj + '.uvSet[0].uvSetName')
+
+        # 复制目标uv集到第一个uv集
+        cmds.polyCopyUV(obj, uvSetNameInput=target_uv_set, uvSetName=firstUvSet, ch=1)
+
+        
+        dislist = []
+
+        # 遍历模型的每个uv集，如果uv集名称不等于第一个uv集的名称，就删除该uv集
+        for uvset in cmds.polyUVSet(q=1, auv=1):
+            if uvset != firstUvSet:
+                try:
+                    cmds.polyUVSet(obj, d=1, uvs=uvset)
+                except:
+                    dislist.append(obj)
+
+        disdict[obj] = dislist
+
+        # 重命名第一个uv集名称为map1
+        cmds.polyUVSet(e=1, rn=1, uvs=firstUvSet, nuv="map1")
+
 
 # 创建一个窗口，标题为“Copy UV Set”
-window = cmds.window(title="Copy UV Set", widthHeight=(300, 150))
+window = cmds.window(title="Copy UV Set", widthHeight=(350, 300))
 
 # 创建一个垂直布局
 cmds.columnLayout()
